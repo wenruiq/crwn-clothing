@@ -12,11 +12,11 @@ export const selectCollections = createSelector(
 // and then see collections-overview.component to see how it is being selected and rendered
 export const selectCollectionsForPreview = createSelector(
   [selectCollections],
-  collections => Object.keys(collections).map(key => collections[key])
+  collections =>
+    collections ? Object.keys(collections).map(key => collections[key]) : []
 );
 
 export const selectCollection = collectionUrlParam =>
-  createSelector(
-    [selectCollections],
-    collections => collections[collectionUrlParam]
+  createSelector([selectCollections], collections =>
+    collections ? collections[collectionUrlParam] : null
   );

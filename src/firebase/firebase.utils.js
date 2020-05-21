@@ -13,6 +13,8 @@ const config = {
   measurementId: 'G-RK2MV6JGQB',
 };
 
+firebase.initializeApp(config);
+
 export const createUserProfileDocument = async (userAuth, additionalData) => {
   // if not logged in, return
   if (!userAuth) return;
@@ -30,7 +32,7 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
     // get date
     const createdAt = new Date();
 
-    // 
+    //
     try {
       await userRef.set({
         displayName,
@@ -42,11 +44,42 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
       console.log('error creating user', err.message);
     }
   }
-  
+
   return userRef;
 };
 
-firebase.initializeApp(config);
+// Use to add data to database
+export const addCollectionAndDocument = async (collectionKey, objectsToAdd) => {
+  const collectionRef = firestore.collection(collectionKey);
+  console.log(collectionRef);
+
+  // use batch so if one request fails, the whole operation will fail, helps with data consistency
+  const batch = firestore.batch();
+  objectsToAdd.forEach(obj => {
+    // .doc() gives new doc ref with randomly generated id, because no arg is passed in
+    const newDocRef = collectionRef.doc();
+    batch.set(newDocRef, obj);
+  });
+
+  return await batch.commit();
+};
+
+export const convertCollectionsSnapshotToMap = collections => {
+  const transformedCollection = collections.docs.map(doc => {
+    const { title, items } = doc.data();
+
+    return {
+      routeName: encodeURI(title.toLowerCase()),
+      id: doc.id,
+      title,
+      items,
+    };
+  });
+  return transformedCollection.reduce((acc, collection) => {
+    acc[collection.title.toLowerCase()] = collection;
+    return acc;
+  }, {});
+};
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
